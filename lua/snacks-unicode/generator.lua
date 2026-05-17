@@ -106,9 +106,30 @@ local function codepoint_to_char(cp)
   return vim.fn.nr2char(cp)
 end
 
+local function utf8_codepoints(char)
+  return coroutine.wrap(function()
+    local i = 1
+    while i <= #char do
+      local b = string.byte(char, i)
+      local cp, len
+      if b < 0x80 then
+        cp, len = b, 1
+      elseif b < 0xE0 then
+        cp, len = (b - 0xC0) * 0x40 + string.byte(char, i + 1) - 0x80, 2
+      elseif b < 0xF0 then
+        cp, len = (b - 0xE0) * 0x1000 + (string.byte(char, i + 1) - 0x80) * 0x40 + string.byte(char, i + 2) - 0x80, 3
+      else
+        cp, len = (b - 0xF0) * 0x40000 + (string.byte(char, i + 1) - 0x80) * 0x1000 + (string.byte(char, i + 2) - 0x80) * 0x40 + string.byte(char, i + 3) - 0x80, 4
+      end
+      coroutine.yield(cp)
+      i = i + len
+    end
+  end)
+end
+
 local function codepoint_str_from_char(char)
   local parts = {}
-  for _, cp in utf8.codes(char) do
+  for cp in utf8_codepoints(char) do
     table.insert(parts, string.format("U+%X", cp))
   end
   return table.concat(parts, " ")

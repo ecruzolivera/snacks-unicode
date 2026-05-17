@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: complete
 phase: 4
 updated: 2026-05-17
 ---
@@ -50,18 +50,18 @@ Create a standalone Neovim plugin that registers a `Snacks.picker.unicode()` sou
 - [x] 3.3 Handle Edge Case: Snacks not yet loaded when setup runs (defer with autocmd or vim.schedule)
 - [x] 3.4 Add `:SnacksUnicodeUpdate` command to regenerate data on demand
 
-## Phase 4: Verification [IN PROGRESS]
+## Phase 4: Verification [COMPLETE]
 
-- [ ] **4.1 Run registration logic test (Snacks missing → warn once, no hang)** ← CURRENT
-- [ ] 4.2 Run headless generator via `nvim --headless -u NONE -c "luafile scripts/generate.lua" -c "qa"`
-- [ ] 4.3 Verify generated files exist under `stdpath("state")/snacks-unicode/`
-- [ ] 4.4 Install plugin with lazy.nvim, verify `Snacks.picker.unicode()` opens without errors
-- [ ] 4.5 Fuzzy search across categories (e.g., type "arrow", "fire", "alpha", "euro")
-- [ ] 4.6 Verify confirm inserts the correct Unicode character into the buffer
-- [ ] 4.7 Verify preview shows correct codepoint information
-- [ ] 4.8 Test with `{ categories = { "arrows", "math" } }` filter
-- [ ] 4.9 Test with no items (empty category list): picker should show empty list, not crash
-- [ ] 4.10 Verify `:SnacksUnicodeUpdate` regenerates state data without background refresh
+- [x] 4.1 Run registration logic test (Snacks missing → warn once, no hang)
+- [x] 4.2 Run headless generator via `nvim --headless -u NONE -c "luafile scripts/generate.lua" -c "qa"`
+- [x] 4.3 Verify generated files exist under `stdpath("state")/snacks-unicode/`
+- [x] 4.4 Install plugin with lazy.nvim, verify `Snacks.picker.unicode()` opens without errors
+- [x] 4.5 Fuzzy search across categories (e.g., type "arrow", "fire", "alpha", "euro")
+- [x] 4.6 Verify confirm inserts the correct Unicode character into the buffer
+- [x] 4.7 Verify preview shows correct codepoint information
+- [x] 4.8 Test with `{ categories = { "arrows", "math" } }` filter
+- [x] 4.9 Test with no items (empty category list): picker should show empty list, not crash
+- [x] 4.10 Verify `:SnacksUnicodeUpdate` regenerates state data without background refresh
 
 ## Testing Plan
 
