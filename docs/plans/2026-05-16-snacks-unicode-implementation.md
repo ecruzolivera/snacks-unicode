@@ -8,35 +8,37 @@ updated: 2026-05-16
 
 ## Goal
 
-Create a standalone Neovim plugin that registers a `Snacks.picker.unicode()` source for fuzzy-searching comprehensive Unicode symbols (including emoji) across 15 semantic categories.
+Create a standalone Neovim plugin that registers a `Snacks.picker.unicode()` source for fuzzy-searching comprehensive Unicode symbols (including emoji) across 16 semantic categories, with data generated on install/update into `stdpath("state")`.
 
 ## Context & Decisions
 
-| Decision                                                                  | Rationale                                                                                                                                                              | Source                                                |
-| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Standalone plugin vs extending built-in icons picker                      | Dedicated source gives full control over finder, format, preview, and category layout vs cramming into the existing icons system                                       | `ref:./research/snacks-picker-source-architecture.md` |
-| Use `#` component naming convention (`unicode#find`)                      | Follows the pattern used by built-in LSP config sources; resolves via `M.field()` to module exports                                                                    | `ref:./research/snacks-picker-source-architecture.md` |
-| Module at `lua/snacks/picker/source/unicode/`                             | Snacks' `M.field()` uses `require("snacks.picker.source.<path>")` which finds modules on Neovim's runtimepath; matches third-party pattern used by snacks-luasnip.nvim | `ref:./research/snacks-picker-source-architecture.md` |
-| Register source via setup() injecting into `Snacks.picker.config.sources` | Triggers `__newindex` metatable which auto-creates `Snacks.picker.unicode()` wrapper; no user boilerplate                                                              | `ref:./research/snacks-picker-source-architecture.md` |
-| 15 categories mapped from Unicode blocks                                  | Block mapping gives clean semantic categories (arrows, math, greek) instead of raw Unicode General Categories (Sm, So, Sc) which are too granular                      | `ref:./research/unicode-data-format.md`               |
-| Pre-generate JSON data files (committed to repo)                          | Users don't need internet or generation script; data works offline; generation script available for regeneration                                                       | `ref:./research/unicode-data-format.md`               |
-| Emoji from muan/unicode-emoji-json                                        | Same source as Snacks built-in emoji picker; has human-readable names ("grinning face") vs official "GRINNING FACE"                                                    | `ref:./research/unicode-data-format.md`               |
-| Fallback char check with `vim.fn.char2nr`                                 | Some Unicode chars may not render in the user's font; can silently skip empty/invisible glyphs at load time                                                            | `ref:./research/unicode-data-format.md`               |
-| Confirm action = `"put"`                                                  | Same as the built-in icons picker; inserts the selected Unicode character at cursor                                                                                    | `ref:./research/snacks-picker-source-architecture.md` |
-| Reuse built-in `SnacksPickerIcon` highlight groups                        | Visual consistency with the rest of Snacks picker; no custom highlight definitions needed                                                                              | `ref:./research/snacks-picker-source-architecture.md` |
+| Decision                                                                  | Rationale                                                                                                                                                              | Source                                                                                |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Standalone plugin vs extending built-in icons picker                      | Dedicated source gives full control over finder, format, preview, and category layout vs cramming into the existing icons system                                       | `ref:../research/snacks-picker-source-architecture.md`                                |
+| Use `#` component naming convention (`unicode#find`)                      | Follows the pattern used by built-in LSP config sources; resolves via `M.field()` to module exports                                                                    | `ref:../research/snacks-picker-source-architecture.md`                                |
+| Module at `lua/snacks/picker/source/unicode/`                             | Snacks' `M.field()` uses `require("snacks.picker.source.<path>")` which finds modules on Neovim's runtimepath; matches third-party pattern used by snacks-luasnip.nvim | `ref:../research/snacks-picker-source-architecture.md`                                |
+| Register source via setup() injecting into `Snacks.picker.config.sources` | Triggers `__newindex` metatable which auto-creates `Snacks.picker.unicode()` wrapper; no user boilerplate                                                              | `ref:../research/snacks-picker-source-architecture.md`                                |
+| 16 categories mapped from Unicode blocks                                  | Block mapping gives clean semantic categories (arrows, math, greek) instead of raw Unicode General Categories (Sm, So, Sc) which are too granular                      | `ref:../research/unicode-data-format.md`                                              |
+| Generate data on install/update into `stdpath("state")`                   | Users get fresh Unicode data without waiting for a plugin release, and mutable generated files live in the correct per-user writable state directory                   | `ref:https://lazy.folke.io/developers`, `ref:http://neovim.io/doc/user/starting.html` |
+| Emoji from muan/unicode-emoji-json as primary emoji dataset               | Captures human-readable names and multi-codepoint emoji sequences that are not representable as single `UnicodeData.txt` rows                                          | `ref:../research/unicode-data-format.md`                                              |
+| Own each Unicode block in exactly one category                            | Prevents duplicate entries and keeps generation rules deterministic                                                                                                    | `ref:../research/unicode-data-format.md`                                              |
+| Confirm action = `"put"`                                                  | Same as the built-in icons picker; inserts the selected Unicode character at cursor                                                                                    | `ref:../research/snacks-picker-source-architecture.md`                                |
+| Reuse built-in `SnacksPickerIcon` highlight groups                        | Visual consistency with the rest of Snacks picker; no custom highlight definitions needed                                                                              | `ref:../research/snacks-picker-source-architecture.md`                                |
+| Refresh only on install/update and manual command                         | Matches the desired UX and avoids hidden background network work during normal editor usage                                                                            | User requirement                                                                      |
 
 ## Phase 1: Research & Data Generation [IN PROGRESS]
 
-- [x] 1.1 Research Snacks.picker source architecture → `ref:./research/snacks-picker-source-architecture.md`
-- [x] 1.2 Research Unicode data sources and format → `ref:./research/unicode-data-format.md`
+- [x] 1.1 Research Snacks.picker source architecture → `ref:../research/snacks-picker-source-architecture.md`
+- [x] 1.2 Research Unicode data sources and format → `ref:../research/unicode-data-format.md`
 - [ ] **1.3 Write `scripts/generate.lua`** ← CURRENT
-- [ ] 1.4 Run generation script to produce JSON data files under `lua/snacks/picker/source/unicode/data/`
-- [ ] 1.5 Verify data completeness and correctness
+- [ ] 1.4 Write `build.lua` so `lazy.nvim` runs generation on install/update
+- [ ] 1.5 Run generation to produce state data under `stdpath("state")/snacks-unicode/`
+- [ ] 1.6 Verify data completeness and correctness
 
 ## Phase 2: Picker Source Module [PENDING]
 
 - [ ] 2.1 Create `lua/snacks/picker/source/unicode/init.lua` — source entry point, config, and helper functions
-- [ ] 2.2 Implement `M.find(opts)` — the finder function that loads and returns items from JSON data
+- [ ] 2.2 Implement `M.find(opts)` — the finder function that loads and returns items from generated state data
 - [ ] 2.3 Implement `M.format(item, picker)` — the formatter showing icon + name + category + codepoint
 - [ ] 2.4 Implement `M.preview(ctx)` — preview showing the symbol at large size with codepoint hex
 - [ ] 2.5 Define `M.config` — default source config table
@@ -46,7 +48,7 @@ Create a standalone Neovim plugin that registers a `Snacks.picker.unicode()` sou
 - [ ] 3.1 Create `lua/snacks-unicode/init.lua` — plugin entry point with `setup(opts)` function
 - [ ] 3.2 Ensure `setup()` registers the source into `Snacks.picker.config.sources`
 - [ ] 3.3 Handle Edge Case: Snacks not yet loaded when setup runs (defer with autocmd or vim.schedule)
-- [ ] 3.4 Clean up stale cache files if the plugin is updated
+- [ ] 3.4 Add `:SnacksUnicodeUpdate` command to regenerate data on demand
 
 ## Phase 4: Verification [PENDING]
 
@@ -56,12 +58,13 @@ Create a standalone Neovim plugin that registers a `Snacks.picker.unicode()` sou
 - [ ] 4.4 Verify preview shows correct codepoint information
 - [ ] 4.5 Test with `{ categories = { "arrows", "math" } }` filter
 - [ ] 4.6 Test with no items (empty category list): picker should show empty list, not crash
+- [ ] 4.7 Verify `:SnacksUnicodeUpdate` regenerates state data successfully
 
 ## Notes
 
-- 2026-05-16: Snacks.picker does not validate the existence of a custom source's finder module until the picker is actually opened. The `__newindex` metatable always wraps, even for modules that will fail at require time. Deferred error handling is fine. `ref:./research/snacks-picker-source-architecture.md`
-
-- 2026-05-16: UnicodeData.txt contains ~155K characters. After filtering out CJK, Hangul, ASCII, controls, and private use, we expect ~12K-18K symbols across all categories. The emoji JSON from muan adds ~1,800 entries with human-readable names. `ref:./research/unicode-data-format.md`
+- 2026-05-16: Snacks.picker does not validate the existence of a custom source's finder module until the picker is actually opened. The `__newindex` metatable always wraps, even for modules that will fail at require time. Deferred error handling is fine. `ref:../research/snacks-picker-source-architecture.md`
+- 2026-05-16: UnicodeData.txt contains ~155K characters. After filtering out CJK, Hangul, ASCII, controls, and private use, we expect ~12K-18K symbols across all non-emoji categories. The emoji JSON from muan adds ~1,800+ entries, including multi-codepoint sequences with human-readable names. `ref:../research/unicode-data-format.md`
+- 2026-05-17: `lazy.nvim` runs plugin `build` hooks on install and update, and those build steps can run asynchronously. `stdpath("state")` is Neovim's writable state directory, typically `~/.local/state/nvim` on Linux. `ref:https://lazy.folke.io/developers`, `ref:http://neovim.io/doc/user/starting.html`
 
 ## Implementation Details
 
@@ -70,13 +73,14 @@ Create a standalone Neovim plugin that registers a `Snacks.picker.unicode()` sou
 Strategy:
 
 1. Fetch `Blocks.txt` to get block boundaries
-2. Map each block to one of 15 categories
+2. Map each included block to exactly one of 16 categories
 3. Fetch `UnicodeData.txt` and parse each line
-4. For each character, check if its block is in our included set
-5. Skip excluded ranges (CJK, Hangul, ASCII, controls, Private Use)
-6. Build item with: `{ icon: "<char>", name: "<UCD_NAME>", category: "<our_category>", codepoint: "<U+XXXX>" }`
-7. For emoji category: override from muan JSON for human-readable names
-8. Write one JSON file per category to `lua/snacks/picker/source/unicode/data/`
+4. For each non-emoji codepoint, check whether its block is in our included set
+5. Skip excluded ranges (ASCII, CJK, Hangul, controls, surrogates, private use, non-characters, invisible combining marks)
+6. Build item with: `{ icon = "<char>", name = "<UCD_NAME>", category = "<our_category>", codepoint = "<U+XXXX>" }`
+7. Fetch `muan/unicode-emoji-json` and build the entire `emoji` category directly from that dataset so multi-codepoint emoji sequences are preserved
+8. Write one JSON file per category under `stdpath("state")/snacks-unicode/` using temp files plus atomic rename
+9. Write metadata file with Unicode version and generation timestamp
 
 ### Category Mapping
 
@@ -93,11 +97,11 @@ Strategy:
 | greek        | Greek and Coptic, Greek Extended                                                                                                                              | ~550       |
 | letterlike   | Letterlike Symbols                                                                                                                                            | ~100       |
 | math         | Mathematical Operators, Misc Math Symbols-A/B, Supplemental Math Operators, Math Alphanumeric Symbols                                                         | ~4,000     |
-| misc-symbols | Miscellaneous Symbols, Alchemical Symbols, Chess Symbols, Legacy Computing, Misc Technical (non-emojis)                                                       | ~800       |
+| misc-symbols | Miscellaneous Symbols, Alchemical Symbols, Chess Symbols, Legacy Computing                                                                                    | ~800       |
 | number-forms | Number Forms, Enclosed Alphanumerics                                                                                                                          | ~100       |
 | punctuation  | General Punctuation (non-ASCII), Latin-1 Supplement (non-ASCII punctuation subset)                                                                            | ~150       |
 | sub-super    | Superscripts and Subscripts                                                                                                                                   | ~50        |
-| technical    | Miscellaneous Technical (subset), Control Pictures                                                                                                            | ~350       |
+| technical    | Miscellaneous Technical, Control Pictures                                                                                                                     | ~350       |
 
 ### Source Config Defaults
 
@@ -116,8 +120,39 @@ M.config = {
 ### Finder Logic
 
 ```lua
+local M = {}
+
+M.categories = {
+  "arrows",
+  "blocks",
+  "box-drawing",
+  "braille",
+  "currency",
+  "dingbats",
+  "emoji",
+  "geometric",
+  "greek",
+  "letterlike",
+  "math",
+  "misc-symbols",
+  "number-forms",
+  "punctuation",
+  "sub-super",
+  "technical",
+}
+
+local function load_category(category)
+  local path = state_dir() .. "/" .. category .. ".json"
+  local ok, lines = pcall(vim.fn.readfile, path)
+  if not ok then
+    Snacks.notify.warn("snacks-unicode: missing generated data for category '" .. category .. "'")
+    return {}
+  end
+  return vim.json.decode(table.concat(lines, "\n")) or {}
+end
+
 function M.find(opts)
-  local categories = opts.categories or vim.tbl_keys(M.data)
+  local categories = opts.categories or M.categories
   local ret = {}
   for _, cat in ipairs(categories) do
     local items = load_category(cat)
@@ -134,7 +169,11 @@ function M.find(opts)
   end
   return ret
 end
+
+return M
 ```
+
+`state_dir()` should return `vim.fn.stdpath("state") .. "/snacks-unicode"`.
 
 ### Formatter Display
 
@@ -190,6 +229,9 @@ function M.setup(opts)
   local source = require("snacks.picker.source.unicode")
   local config = vim.tbl_deep_extend("force", source.config, opts)
   Snacks.picker.config.sources.unicode = config
+  vim.api.nvim_create_user_command("SnacksUnicodeUpdate", function()
+    require("snacks-unicode.generator").run({ async = true, notify = true })
+  end, { desc = "Regenerate snacks-unicode data" })
 end
 
 return M
@@ -215,8 +257,37 @@ return M
 ### Edge Cases
 
 1. **Empty categories**: If `categories = {}`, return empty array. Picker shows empty list, not crash.
-2. **Missing data file**: If a category JSON is missing, skip it with `Snacks.notify.warn()`. Don't error.
+2. **Missing generated data**: If a category JSON file is missing, skip it with `Snacks.notify.warn()`. Don't error.
 3. **Snacks not loaded**: `setup()` checks if `Snacks.picker` exists; if not, defer via `vim.schedule` loop or `User` autocmd.
-4. **Unrenderable chars**: Characters that require specific fonts will display as boxes. This is expected and standard across all Unicode tools.
-5. **Large data volume**: ~10K items is well within Snacks' async matching pipeline. The finder returns all items synchronously (from JSON), and the matcher handles filtering async.
-6. **Data freshness**: User can re-run `generate.lua` to update data for newer Unicode versions. The generation script is documented and included in the repo.
+4. **Emoji sequences**: Some emoji are multi-codepoint strings. Treat `icon` and `data` as Lua strings, not single codepoints, and derive `codepoint` as a joined string such as `U+1F469 U+200D U+1F4BB`.
+5. **Unrenderable chars**: Characters that require specific fonts will display as boxes. This is expected and standard across all Unicode tools.
+6. **Large data volume**: ~10K-20K items is well within Snacks' async matching pipeline. The finder returns all items synchronously (from generated state files), and the matcher handles filtering async.
+7. **Offline install/update**: If generation fails during `lazy` build because the network is unavailable, keep the plugin loadable but surface a warning that data was not generated.
+8. **Manual refresh**: `:SnacksUnicodeUpdate` reruns generation on demand; no automatic background refresh outside install/update.
+9. **Concurrent writes**: Generator should write to temp files and rename them into place atomically.
+
+### Runtime Data Loading
+
+```lua
+-- ~/.local/state/nvim/snacks-unicode/emoji.json
+[
+  {
+    "icon": "😀",
+    "name": "grinning face",
+    "category": "emoji",
+    "codepoint": "U+1F600"
+  }
+]
+```
+
+Generated files live under `vim.fn.stdpath("state") .. "/snacks-unicode/"`, keeping mutable data out of the plugin install directory.
+
+### Lazy Build Hook
+
+```lua
+-- build.lua
+coroutine.yield("Generating snacks-unicode data")
+require("snacks-unicode.generator").run({ async = false, notify = false })
+```
+
+`lazy.nvim` should execute `build.lua` automatically on install/update.
