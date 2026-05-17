@@ -1,7 +1,7 @@
 ---
 status: in-progress
-phase: 1
-updated: 2026-05-16
+phase: 4
+updated: 2026-05-17
 ---
 
 # Implementation Plan: snacks-unicode
@@ -26,33 +26,33 @@ Create a standalone Neovim plugin that registers a `Snacks.picker.unicode()` sou
 | Reuse built-in `SnacksPickerIcon` highlight groups                        | Visual consistency with the rest of Snacks picker; no custom highlight definitions needed                                                                              | `ref:../research/snacks-picker-source-architecture.md`                                |
 | Refresh only on install/update and manual command                         | Matches the desired UX and avoids hidden background network work during normal editor usage                                                                            | User requirement                                                                      |
 
-## Phase 1: Research & Data Generation [IN PROGRESS]
+## Phase 1: Research & Data Generation [COMPLETE]
 
 - [x] 1.1 Research Snacks.picker source architecture → `ref:../research/snacks-picker-source-architecture.md`
 - [x] 1.2 Research Unicode data sources and format → `ref:../research/unicode-data-format.md`
-- [ ] **1.3 Write `scripts/generate.lua`** ← CURRENT
-- [ ] 1.4 Write `build.lua` so `lazy.nvim` runs generation on install/update
+- [x] 1.3 Write generation logic → `ref:../lua/snacks-unicode/generator.lua`
+- [x] 1.4 Write `build.lua` so `lazy.nvim` runs generation on install/update
 - [ ] 1.5 Run generation to produce state data under `stdpath("state")/snacks-unicode/`
 - [ ] 1.6 Verify data completeness and correctness
 
-## Phase 2: Picker Source Module [PENDING]
+## Phase 2: Picker Source Module [COMPLETE]
 
-- [ ] 2.1 Create `lua/snacks/picker/source/unicode/init.lua` — source entry point, config, and helper functions
-- [ ] 2.2 Implement `M.find(opts)` — the finder function that loads and returns items from generated state data
-- [ ] 2.3 Implement `M.format(item, picker)` — the formatter showing icon + name + category + codepoint
-- [ ] 2.4 Implement `M.preview(ctx)` — preview showing the symbol at large size with codepoint hex
-- [ ] 2.5 Define `M.config` — default source config table
+- [x] 2.1 Create `lua/snacks/picker/source/unicode/init.lua` — source entry point, config, and helper functions
+- [x] 2.2 Implement `M.find(opts)` — the finder function that loads and returns items from generated state data
+- [x] 2.3 Implement `M.format(item, picker)` — the formatter showing icon + name + category + codepoint
+- [x] 2.4 Implement `M.preview(ctx)` — preview showing the symbol at large size with codepoint hex
+- [x] 2.5 Define `M.config` — default source config table
 
-## Phase 3: Plugin Entry & Integration [PENDING]
+## Phase 3: Plugin Entry & Integration [COMPLETE]
 
-- [ ] 3.1 Create `lua/snacks-unicode/init.lua` — plugin entry point with `setup(opts)` function
-- [ ] 3.2 Ensure `setup()` registers the source into `Snacks.picker.config.sources`
-- [ ] 3.3 Handle Edge Case: Snacks not yet loaded when setup runs (defer with autocmd or vim.schedule)
-- [ ] 3.4 Add `:SnacksUnicodeUpdate` command to regenerate data on demand
+- [x] 3.1 Create `lua/snacks-unicode/init.lua` — plugin entry point with `setup(opts)` function
+- [x] 3.2 Ensure `setup()` registers the source into `Snacks.picker.config.sources`
+- [x] 3.3 Handle Edge Case: Snacks not yet loaded when setup runs (defer with autocmd or vim.schedule)
+- [x] 3.4 Add `:SnacksUnicodeUpdate` command to regenerate data on demand
 
-## Phase 4: Verification [PENDING]
+## Phase 4: Verification [IN PROGRESS]
 
-- [ ] 4.1 Load plugin in Neovim and verify `Snacks.picker.unicode()` opens without errors
+- [ ] **4.1 Load plugin in Neovim and verify `Snacks.picker.unicode()` opens without errors** ← CURRENT
 - [ ] 4.2 Fuzzy search across categories (e.g., type "arrow", "fire", "alpha", "euro")
 - [ ] 4.3 Verify confirm inserts the correct Unicode character into the buffer
 - [ ] 4.4 Verify preview shows correct codepoint information
