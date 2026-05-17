@@ -12,18 +12,18 @@ Create a standalone Neovim plugin that registers a `Snacks.picker.unicode()` sou
 
 ## Context & Decisions
 
-| Decision | Rationale | Source |
-| -------- | --------- | ------ |
-| Standalone plugin vs extending built-in icons picker | Dedicated source gives full control over finder, format, preview, and category layout vs cramming into the existing icons system | `ref:./research/snacks-picker-source-architecture.md` |
-| Use `#` component naming convention (`unicode#find`) | Follows the pattern used by built-in LSP config sources; resolves via `M.field()` to module exports | `ref:./research/snacks-picker-source-architecture.md` |
-| Module at `lua/snacks/picker/source/unicode/` | Snacks' `M.field()` uses `require("snacks.picker.source.<path>")` which finds modules on Neovim's runtimepath; matches third-party pattern used by snacks-luasnip.nvim | `ref:./research/snacks-picker-source-architecture.md` |
-| Register source via setup() injecting into `Snacks.picker.config.sources` | Triggers `__newindex` metatable which auto-creates `Snacks.picker.unicode()` wrapper; no user boilerplate | `ref:./research/snacks-picker-source-architecture.md` |
-| 15 categories mapped from Unicode blocks | Block mapping gives clean semantic categories (arrows, math, greek) instead of raw Unicode General Categories (Sm, So, Sc) which are too granular | `ref:./research/unicode-data-format.md` |
-| Pre-generate JSON data files (committed to repo) | Users don't need internet or generation script; data works offline; generation script available for regeneration | `ref:./research/unicode-data-format.md` |
-| Emoji from muan/unicode-emoji-json | Same source as Snacks built-in emoji picker; has human-readable names ("grinning face") vs official "GRINNING FACE" | `ref:./research/unicode-data-format.md` |
-| Fallback char check with `vim.fn.char2nr` | Some Unicode chars may not render in the user's font; can silently skip empty/invisible glyphs at load time | `ref:./research/unicode-data-format.md` |
-| Confirm action = `"put"` | Same as the built-in icons picker; inserts the selected Unicode character at cursor | `ref:./research/snacks-picker-source-architecture.md` |
-| Reuse built-in `SnacksPickerIcon` highlight groups | Visual consistency with the rest of Snacks picker; no custom highlight definitions needed | `ref:./research/snacks-picker-source-architecture.md` |
+| Decision                                                                  | Rationale                                                                                                                                                              | Source                                                |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Standalone plugin vs extending built-in icons picker                      | Dedicated source gives full control over finder, format, preview, and category layout vs cramming into the existing icons system                                       | `ref:./research/snacks-picker-source-architecture.md` |
+| Use `#` component naming convention (`unicode#find`)                      | Follows the pattern used by built-in LSP config sources; resolves via `M.field()` to module exports                                                                    | `ref:./research/snacks-picker-source-architecture.md` |
+| Module at `lua/snacks/picker/source/unicode/`                             | Snacks' `M.field()` uses `require("snacks.picker.source.<path>")` which finds modules on Neovim's runtimepath; matches third-party pattern used by snacks-luasnip.nvim | `ref:./research/snacks-picker-source-architecture.md` |
+| Register source via setup() injecting into `Snacks.picker.config.sources` | Triggers `__newindex` metatable which auto-creates `Snacks.picker.unicode()` wrapper; no user boilerplate                                                              | `ref:./research/snacks-picker-source-architecture.md` |
+| 15 categories mapped from Unicode blocks                                  | Block mapping gives clean semantic categories (arrows, math, greek) instead of raw Unicode General Categories (Sm, So, Sc) which are too granular                      | `ref:./research/unicode-data-format.md`               |
+| Pre-generate JSON data files (committed to repo)                          | Users don't need internet or generation script; data works offline; generation script available for regeneration                                                       | `ref:./research/unicode-data-format.md`               |
+| Emoji from muan/unicode-emoji-json                                        | Same source as Snacks built-in emoji picker; has human-readable names ("grinning face") vs official "GRINNING FACE"                                                    | `ref:./research/unicode-data-format.md`               |
+| Fallback char check with `vim.fn.char2nr`                                 | Some Unicode chars may not render in the user's font; can silently skip empty/invisible glyphs at load time                                                            | `ref:./research/unicode-data-format.md`               |
+| Confirm action = `"put"`                                                  | Same as the built-in icons picker; inserts the selected Unicode character at cursor                                                                                    | `ref:./research/snacks-picker-source-architecture.md` |
+| Reuse built-in `SnacksPickerIcon` highlight groups                        | Visual consistency with the rest of Snacks picker; no custom highlight definitions needed                                                                              | `ref:./research/snacks-picker-source-architecture.md` |
 
 ## Phase 1: Research & Data Generation [IN PROGRESS]
 
@@ -68,6 +68,7 @@ Create a standalone Neovim plugin that registers a `Snacks.picker.unicode()` sou
 ### Data Generation (`scripts/generate.lua`)
 
 Strategy:
+
 1. Fetch `Blocks.txt` to get block boundaries
 2. Map each block to one of 15 categories
 3. Fetch `UnicodeData.txt` and parse each line
@@ -79,24 +80,24 @@ Strategy:
 
 ### Category Mapping
 
-| Category | Block names | Est. Count |
-|----------|-------------|-----------|
-| arrows | Arrows, Supplemental Arrows-A/B/C, Misc Symbols and Arrows | ~700 |
-| blocks | Block Elements | ~32 |
-| box-drawing | Box Drawing | ~128 |
-| braille | Braille Patterns | ~256 |
-| currency | Currency Symbols | ~50 |
-| dingbats | Dingbats, Ornamental Dingbats | ~260 |
-| emoji | Misc Symbols and Pictographs, Emoticons, Transport, Supplemental, Enclosed Alphanumeric Suppl, Enclosed Ideographic Suppl, Symbols and Pictographs Extended-A | ~2,200 |
-| geometric | Geometric Shapes, Geometric Shapes Extended | ~200 |
-| greek | Greek and Coptic, Greek Extended | ~550 |
-| letterlike | Letterlike Symbols | ~100 |
-| math | Mathematical Operators, Misc Math Symbols-A/B, Supplemental Math Operators, Math Alphanumeric Symbols | ~4,000 |
-| misc-symbols | Miscellaneous Symbols, Alchemical Symbols, Chess Symbols, Legacy Computing, Misc Technical (non-emojis) | ~800 |
-| number-forms | Number Forms, Enclosed Alphanumerics | ~100 |
-| punctuation | General Punctuation (non-ASCII), Latin-1 Supplement (non-ASCII punctuation subset) | ~150 |
-| sub-super | Superscripts and Subscripts | ~50 |
-| technical | Miscellaneous Technical (subset), Control Pictures | ~350 |
+| Category     | Block names                                                                                                                                                   | Est. Count |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| arrows       | Arrows, Supplemental Arrows-A/B/C, Misc Symbols and Arrows                                                                                                    | ~700       |
+| blocks       | Block Elements                                                                                                                                                | ~32        |
+| box-drawing  | Box Drawing                                                                                                                                                   | ~128       |
+| braille      | Braille Patterns                                                                                                                                              | ~256       |
+| currency     | Currency Symbols                                                                                                                                              | ~50        |
+| dingbats     | Dingbats, Ornamental Dingbats                                                                                                                                 | ~260       |
+| emoji        | Misc Symbols and Pictographs, Emoticons, Transport, Supplemental, Enclosed Alphanumeric Suppl, Enclosed Ideographic Suppl, Symbols and Pictographs Extended-A | ~2,200     |
+| geometric    | Geometric Shapes, Geometric Shapes Extended                                                                                                                   | ~200       |
+| greek        | Greek and Coptic, Greek Extended                                                                                                                              | ~550       |
+| letterlike   | Letterlike Symbols                                                                                                                                            | ~100       |
+| math         | Mathematical Operators, Misc Math Symbols-A/B, Supplemental Math Operators, Math Alphanumeric Symbols                                                         | ~4,000     |
+| misc-symbols | Miscellaneous Symbols, Alchemical Symbols, Chess Symbols, Legacy Computing, Misc Technical (non-emojis)                                                       | ~800       |
+| number-forms | Number Forms, Enclosed Alphanumerics                                                                                                                          | ~100       |
+| punctuation  | General Punctuation (non-ASCII), Latin-1 Supplement (non-ASCII punctuation subset)                                                                            | ~150       |
+| sub-super    | Superscripts and Subscripts                                                                                                                                   | ~50        |
+| technical    | Miscellaneous Technical (subset), Control Pictures                                                                                                            | ~350       |
 
 ### Source Config Defaults
 
@@ -144,6 +145,7 @@ end
 ```
 
 Implementation:
+
 ```lua
 function M.format(item, picker)
   local a = Snacks.picker.util.align

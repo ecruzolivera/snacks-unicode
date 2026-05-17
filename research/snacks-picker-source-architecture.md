@@ -35,6 +35,7 @@ end
 ```
 
 The `#` separator splits into module name and field:
+
 - `"unicode#find"` → `require("snacks.picker.source.unicode")["find"]`
 - `"unicode#format"` → `require("snacks.picker.source.unicode")["format"]`
 
@@ -74,6 +75,7 @@ fuzzy matching. Built-in finder like `M.icons` returns items with `text`, `data`
 and custom fields like `icon`, `name`, `source`, `category`.
 
 The `M.icons` finder sets:
+
 ```lua
 icon.text = Snacks.picker.util.text(icon, { "source", "category", "name" })
 icon.data = icon.icon
@@ -101,6 +103,7 @@ end
 ## External Plugin Pattern
 
 Plugins like `snacks-luasnip.nvim` put Lua files at paths that Snacks can resolve:
+
 - `lua/snacks/picker/source/luasnip.lua` → `require("snacks.picker.source.luasnip")`
 
 ## References
