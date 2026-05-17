@@ -16,10 +16,6 @@ function M.setup(opts)
   end, { desc = "Regenerate snacks-unicode data" })
 
   local function register()
-    if not Snacks or not Snacks.picker then
-      vim.schedule(register)
-      return
-    end
     local source = require("snacks.picker.source.unicode")
     Snacks.picker.config.sources.unicode = vim.tbl_deep_extend(
       "force",
@@ -28,7 +24,24 @@ function M.setup(opts)
     )
   end
 
-  register()
+  if Snacks and Snacks.picker then
+    register()
+  else
+    vim.api.nvim_create_autocmd("VimEnter", {
+      group = vim.api.nvim_create_augroup("snacks_unicode_defer", { clear = true }),
+      once = true,
+      callback = function()
+        if Snacks and Snacks.picker then
+          register()
+        else
+          vim.notify(
+            "snacks-unicode: Snacks.picker not available, source not registered",
+            vim.log.levels.WARN
+          )
+        end
+      end,
+    })
+  end
 end
 
 return M
