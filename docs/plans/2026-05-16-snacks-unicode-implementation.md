@@ -325,7 +325,7 @@ return M
 ```lua
 -- lazy.nvim
 {
-  "ernesto/snacks-unicode",
+  "ecruzolivera/snacks-unicode",
   dependencies = { "folke/snacks.nvim" },
   config = function(_, opts)
     require("snacks-unicode").setup(opts)
