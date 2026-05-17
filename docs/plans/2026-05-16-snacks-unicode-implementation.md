@@ -52,13 +52,96 @@ Create a standalone Neovim plugin that registers a `Snacks.picker.unicode()` sou
 
 ## Phase 4: Verification [IN PROGRESS]
 
-- [ ] **4.1 Load plugin in Neovim and verify `Snacks.picker.unicode()` opens without errors** ← CURRENT
-- [ ] 4.2 Fuzzy search across categories (e.g., type "arrow", "fire", "alpha", "euro")
-- [ ] 4.3 Verify confirm inserts the correct Unicode character into the buffer
-- [ ] 4.4 Verify preview shows correct codepoint information
-- [ ] 4.5 Test with `{ categories = { "arrows", "math" } }` filter
-- [ ] 4.6 Test with no items (empty category list): picker should show empty list, not crash
-- [ ] 4.7 Verify `:SnacksUnicodeUpdate` regenerates state data successfully
+- [ ] **4.1 Run registration logic test (Snacks missing → warn once, no hang)** ← CURRENT
+- [ ] 4.2 Run headless generator via `nvim --headless -u NONE -c "luafile scripts/generate.lua" -c "qa"`
+- [ ] 4.3 Verify generated files exist under `stdpath("state")/snacks-unicode/`
+- [ ] 4.4 Install plugin with lazy.nvim, verify `Snacks.picker.unicode()` opens without errors
+- [ ] 4.5 Fuzzy search across categories (e.g., type "arrow", "fire", "alpha", "euro")
+- [ ] 4.6 Verify confirm inserts the correct Unicode character into the buffer
+- [ ] 4.7 Verify preview shows correct codepoint information
+- [ ] 4.8 Test with `{ categories = { "arrows", "math" } }` filter
+- [ ] 4.9 Test with no items (empty category list): picker should show empty list, not crash
+- [ ] 4.10 Verify `:SnacksUnicodeUpdate` regenerates state data without background refresh
+
+## Testing Plan
+
+### 1. Syntax validation (30 sec)
+
+```
+luajit -bl scripts/generate.lua /dev/null
+luajit -bl lua/snacks-unicode/init.lua /dev/null
+luajit -bl lua/snacks-unicode/generator.lua /dev/null
+luajit -bl lua/snacks/picker/source/unicode/init.lua /dev/null
+```
+
+### 2. Registration logic test: Snacks missing
+
+Run headless without loading Snacks:
+
+```bash
+nvim --headless -u NONE \
+  -c "lua require('snacks-unicode').setup()" \
+  -c "sleep 500m" -c "qa"
+```
+
+Expected: one `WARN` notification, process exits on its own (no hang).
+
+### 3. Headless generation
+
+Run from the repo root:
+
+```bash
+nvim --headless -u NONE \
+  -c "luafile scripts/generate.lua" \
+  -c "sleep 1000m" -c "qa"
+```
+
+Expected: files created under `~/.local/state/nvim/snacks-unicode/`:
+- 16 category `.json` files (arrows, blocks, box-drawing, ...)
+- `metadata.json` with Unicode version + timestamp + item counts
+
+Verify:
+
+```bash
+ls ~/.local/state/nvim/snacks-unicode/
+cat ~/.local/state/nvim/snacks-unicode/metadata.json | head -20
+```
+
+### 4. End-to-end picker tests
+
+Requires plugin installed via lazy.nvim with Snacks as a dependency.
+
+| #  | Test                       | Action                                                  | Expected result                                                |
+|----|----------------------------|---------------------------------------------------------|----------------------------------------------------------------|
+| 4a | Open picker                | Press `<leader>su` or `:lua Snacks.picker.unicode()`    | Picker opens with symbols across all 16 categories             |
+| 4b | Fuzzy "arrow"              | Type `arrow`                                            | Arrow characters filtered from results                         |
+| 4c | Fuzzy "fire"               | Type `fire`                                             | 🔥 appears (emoji category)                                    |
+| 4d | Fuzzy "alpha"              | Type `alpha`                                            | Greek letter α or α-prefixed symbols appear                    |
+| 4e | Fuzzy "euro"               | Type `euro`                                             | € appears (currency category)                                  |
+| 4f | Confirm                    | Select an item, press Enter                             | Correct Unicode character inserted into buffer at cursor       |
+| 4g | Preview                    | Select an item                                          | Preview shows: symbol, codepoint hex, name, category           |
+| 4h | Category filter            | `Snacks.picker.unicode({ categories = { "arrows" } })`  | Only arrows category displayed                                 |
+| 4i | Empty categories           | `Snacks.picker.unicode({ categories = {} })`            | Empty results list, no crash                                   |
+| 4j | Manual refresh             | `:SnacksUnicodeUpdate`                                  | Notification: "generated N items across N categories"          |
+
+### 5. Refresh behavior
+
+Verify no automatic background refresh outside install/update:
+
+1. Run `:SnacksUnicodeUpdate` — data regenerates
+2. Restart Neovim
+3. Open picker immediately — should load existing state data without any network activity
+4. No background fetch should occur during normal editor use
+
+### 6. Edge case pass list
+
+- [ ] Empty categories → empty results, no crash
+- [ ] Missing generated data → `Snacks.notify.warn` for missing category, remaining categories load
+- [ ] Snacks not loaded at setup → registers on `VimEnter`
+- [ ] Snacks never loaded → one `WARN` notification, no infinite loop
+- [ ] Offline install → generator fails gracefully with error notification, plugin still loads
+- [ ] Concurrent write → generator uses temp files + atomic rename
+- [ ] Multi-codepoint emoji → displayed and searchable as single entries
 
 ## Notes
 
