@@ -2,7 +2,9 @@
 
 A [snacks.nvim](https://github.com/folke/snacks.nvim) picker source for fuzzy-searching Unicode symbols and emoji across 16 semantic categories.
 
-![picker preview](https://img.shields.io/badge/status-beta-yellow)
+![picker with symbols](./docs/screenshot_symbols.png)
+
+![picker with emojis](./docs/screenshot_emojis.png)
 
 ## Features
 
