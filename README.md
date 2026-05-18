@@ -22,16 +22,29 @@ A [snacks.nvim](https://github.com/folke/snacks.nvim) picker source for fuzzy-se
 ## Installation
 
 ```lua
--- lazy.nvim
-{
+local Snacks = require("snacks")
+return {
   "ecruzolivera/snacks-unicode",
   dependencies = { "folke/snacks.nvim" },
   config = function(_, opts)
     require("snacks-unicode").setup(opts)
   end,
+  event = "VeryLazy",
   keys = {
-    { "<leader>su", function() Snacks.picker.unicode() end, desc = "Unicode Symbols" },
-    { "<leader>sU", function() Snacks.picker.unicode({ categories = { "emoji" } }) end, desc = "Emoji" },
+    {
+      "<leader>fu",
+      function()
+        Snacks.picker.pick("unicode")
+      end,
+      desc = "Unicode Symbols",
+    },
+    {
+      "<leader>fU",
+      function()
+        Snacks.picker.pick("unicode", { categories = { "emoji" } })
+      end,
+      desc = "Emoji",
+    },
   },
 }
 ```
@@ -70,24 +83,24 @@ Preview shows the symbol at large size with its codepoint, name, and category.
 
 ## Categories
 
-| Category       | Includes                                                                                  | Count |
-|----------------|-------------------------------------------------------------------------------------------|-------|
-| arrows         | Arrows, Supplemental Arrows-A/B/C, Misc Symbols and Arrows                                | ~700  |
-| blocks         | Block Elements                                                                             | ~32   |
-| box-drawing    | Box Drawing                                                                                | ~128  |
-| braille        | Braille Patterns                                                                           | ~256  |
-| currency       | Currency Symbols                                                                           | ~35   |
-| dingbats       | Dingbats, Ornamental Dingbats                                                              | ~240  |
-| emoji          | Misc Symbols and Pictographs, Emoticons, Transport, Supplemental, Enclosed Supplement      | ~1900 |
-| geometric      | Geometric Shapes, Geometric Shapes Extended                                                | ~200  |
-| greek          | Greek and Coptic, Greek Extended                                                           | ~370  |
-| letterlike     | Letterlike Symbols                                                                         | ~80   |
-| math           | Mathematical Operators, Misc Math Symbols-A/B, Supplemental Math Operators, Math Alphanum  | ~1700 |
-| misc-symbols   | Miscellaneous Symbols, Alchemical Symbols, Chess Symbols, Legacy Computing                 | ~740  |
-| number-forms   | Number Forms, Enclosed Alphanumerics                                                        | ~220  |
-| punctuation    | General Punctuation, Latin-1 Supplement, Latin Extended-A/B (punctuation/symbols only)     | ~100  |
-| sub-super      | Superscripts and Subscripts                                                                | ~42   |
-| technical      | Miscellaneous Technical, Control Pictures                                                   | ~300  |
+| Category     | Includes                                                                                  | Count |
+| ------------ | ----------------------------------------------------------------------------------------- | ----- |
+| arrows       | Arrows, Supplemental Arrows-A/B/C, Misc Symbols and Arrows                                | ~700  |
+| blocks       | Block Elements                                                                            | ~32   |
+| box-drawing  | Box Drawing                                                                               | ~128  |
+| braille      | Braille Patterns                                                                          | ~256  |
+| currency     | Currency Symbols                                                                          | ~35   |
+| dingbats     | Dingbats, Ornamental Dingbats                                                             | ~240  |
+| emoji        | Misc Symbols and Pictographs, Emoticons, Transport, Supplemental, Enclosed Supplement     | ~1900 |
+| geometric    | Geometric Shapes, Geometric Shapes Extended                                               | ~200  |
+| greek        | Greek and Coptic, Greek Extended                                                          | ~370  |
+| letterlike   | Letterlike Symbols                                                                        | ~80   |
+| math         | Mathematical Operators, Misc Math Symbols-A/B, Supplemental Math Operators, Math Alphanum | ~1700 |
+| misc-symbols | Miscellaneous Symbols, Alchemical Symbols, Chess Symbols, Legacy Computing                | ~740  |
+| number-forms | Number Forms, Enclosed Alphanumerics                                                      | ~220  |
+| punctuation  | General Punctuation, Latin-1 Supplement, Latin Extended-A/B (punctuation/symbols only)    | ~100  |
+| sub-super    | Superscripts and Subscripts                                                               | ~42   |
+| technical    | Miscellaneous Technical, Control Pictures                                                 | ~300  |
 
 ## How it works
 
